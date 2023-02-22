@@ -87,30 +87,62 @@ def get_title(soup):
 	try:
 		title=soup.find('h1',{'class':'title'}).contents
 		titles.append(title[0])
-	except:
-		Exception:
+	except Exception:
 		titles.append('')
 		pass
 
 # function to extract text
 def get_contents(soup):
 	try:
-	    parents_blacklist=['[document]','html','head',
-                   'style','script','body',
-                   'div','a','section','tr',
-                   'td','label','ul','header',
-                   'aside',]
-        content=''
-        text=soup.find_all(text=True)
+		parents_blacklist=['[document]','html','head','style'\
+		'script','body','div','a','section','tr','td','label'\
+		'ul','header','aside',]
+		content=''
+		text=soup.find_all(text=True)
 
-        for t in text:
-        	if t.parent.name not in parents_blacklist and len(t) > 10:
-        		content=content+t+' '
+		for t in text:
+			if t.parent.name not in parents_blacklist and len(t) > 10:
+				content=content+t+' '
 
-        content_text.append(content)
-    except Exception:
-    	content_text.append('')
-    	pass
+		content_text.append(content)
+	except Exception:
+		content_text.append('')
+		pass
+
+
+# NLP
+# figure out what countries are referenced in product.
+
+def get_countriers(content_list):
+	iteration=1
+	for i in range(len(content_list)):
+		print('Getting countries',iteration,'/',len(content_list))
+		temp_list=[]
+		for word in word_tokenize(content_list[i]):
+			for country in country_list:
+				if word.lower().strip() == country.lower().strip():
+					temp_list.append(country)
+
+		counted_countries=dict(Counter(temp_list))
+		temp_dict=dict.fromkeys(temp_list,0)
+		temp_list=list(temp_dict)
+		if len(temp_list)==0:
+			temp_list.append('Worldwide')
+		mentioned_countries.append(temp_list)
+
+		# counting number mentions for each country
+		# then checking if country is mentioned more than
+		# the mean number of mentions.
+
+		keywords=[]
+		for key in counted_countries.keys():
+			if counted_countries[key] > np.mean(list(counted_countries.values())):
+				keywords.append(key)
+		if len(keywords) != 0:
+			key_countries.append(keywords)
+		else:
+			key_countries.append(temp_list)
+		iteration+=1
 
 
 
